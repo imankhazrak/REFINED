@@ -1,17 +1,25 @@
-import pickle
+
 import numpy as np
 import pandas as pd
+
+import pickle
 import cv2
 import matplotlib.pyplot as plt
-import scipy.misc
-import Toolbox
-from Toolbox import two_d_eq, Assign_features_to_pixels
-from sklearn.manifold import MDS
-from sklearn.metrics.pairwise import euclidean_distances
 import math
 
+import scipy.misc
+
+from sklearn.manifold import MDS
+from sklearn.metrics.pairwise import euclidean_distances
+
+import Toolbox
+from Toolbox import two_d_eq, Assign_features_to_pixels
+from config import *
+
+########################################################
+
 #%% Loading the data
-Feat_DF = pd.read_csv("data/normalized_padel_feats_NCI60_672_small.csv").dropna(thresh=50)
+Feat_DF = pd.read_csv(args.data_dir).dropna(thresh=50)
 
 X = Feat_DF.values; X = X[:,2:]
 original_input = pd.DataFrame(data = X)                              # The MDS input should be in a dataframe format
