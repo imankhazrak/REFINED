@@ -1,4 +1,4 @@
-
+import os
 import numpy as np
 import pandas as pd
 
@@ -19,6 +19,12 @@ from config import *
 ########################################################
 
 #%% Loading the data
+data_dir = args.data_dir
+
+# Check if the directory exists
+if not os.path.isdir(data_dir):
+    raise ValueError(f"The specified data directory does not exist: {data_dir}")
+
 Feat_DF = pd.read_csv(args.data_dir).dropna(thresh=50)
 
 X = Feat_DF.values; X = X[:,2:]

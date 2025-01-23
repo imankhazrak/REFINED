@@ -31,6 +31,10 @@ This part of the code applies MDS and its post processing steps for transposed d
 - Saving hill climbing inputs
 As the hill climbing algorithms works based on minimizing the Euclidean distance, beside the the MDS image coordinates, a euclidean distance of features as matrice need to saved as inputs of the hill climbing. Therefore all the hill climbing required inputs are saved as a pickle.
 
+```bash
+python Initial_MDS.py --data_dir /path/to/your/data
+```
+
 ## 2. Hill climbing
 The hill climbing section of REFINED is written based on using Message Passing Interface (MPI) of python to use HPCC resource very efficiently. To run this code make sure to install **mpi4py** library of Python. The hill climbing algorithm section was written based master-slave control process where the first processor is the master and other processors will slave. The master processor distribute, scatter and receive data from slave processors. Slave processors do the computational task. Some computational functions needed to run Hill climbing code should be imported from **paraHill.py**
 To run the hill climbing algorithm one need to use the **mpiHill_UF.py**. 
@@ -46,7 +50,10 @@ The feature names, REFINED coordinates, and intial map will be save as the outpu
 
 - Example:
 The below bash script can be used as an example for running the **mpiHill_UF.py**.
+
+```bash
 ` mpirun -np $NSLOTS python3 mpiHill_UF.py --init 'Init.pickle'	--mapping 'Mapping.pickle'  --evolution "Evolv.csv" --num 5`
+```
 
 #### Please note that, it is recommended to use the REFINED code on HPCC as it is a time-consuming process. For the NCI60 dataset, if your PC has sufficient memory, it takes more than 12 hourse to run. But, as it is recommended, if you use a HPC system, it takes less than an hour. 
 
