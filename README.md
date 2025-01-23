@@ -32,7 +32,7 @@ This part of the code applies MDS and its post processing steps for transposed d
 As the hill climbing algorithms works based on minimizing the Euclidean distance, beside the the MDS image coordinates, a euclidean distance of features as matrice need to saved as inputs of the hill climbing. Therefore all the hill climbing required inputs are saved as a pickle.
 
 ```bash
-python Initial_MDS.py --data_dir /path/to/your/data
+python Initial_MDS.py --data_dir /path/to/your/data --output_file /path/to/output/Init_MDS_Euc.pickle
 ```
 
 ## 2. Hill climbing
