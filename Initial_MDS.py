@@ -11,7 +11,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 import math
 
 #%% Loading the data
-Feat_DF = pd.read_csv("...\\normalized_padel_feats_NCI60_672_small.csv")
+Feat_DF = pd.read_csv("data/normalized_padel_feats_NCI60_672_small.csv").dropna(thresh=50)
 
 X = Feat_DF.values; X = X[:,2:]
 original_input = pd.DataFrame(data = X)                              # The MDS input should be in a dataframe format
@@ -39,5 +39,5 @@ Desc = Feat_DF.columns.tolist();    Desc = Desc[2:]					# Drug descriptors name
 Dist = pd.DataFrame(data = Euc_Dist, columns = Desc, index = Desc)	# Generating a distance matrix which includes the Euclidean distance between each and every descriptor
 data = (Desc, Dist, Img	)  											# Preparing the hill climbing inputs
 
-with open("...\\Init_MDS_Euc.pickle", 'wb') as f:					# The hill climbing input is a pickle, therefore everything is saved as a pickle to be loaded by the hill climbing
+with open("Init_MDS_Euc.pickle", 'wb') as f:					# The hill climbing input is a pickle, therefore everything is saved as a pickle to be loaded by the hill climbing
     pickle.dump(data, f)
