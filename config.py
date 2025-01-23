@@ -10,6 +10,8 @@ from argparse import ArgumentParser
 parser=ArgumentParser()
 
 parser.add_argument('--data_dir', type=str, required=True, help="Path to the data directory in Initial_MDS.py")
+parser.add_argument('--output_file', type=str, default='Init_MDS_Euc.pickle', help="Path to the output pickle file  in Initial_MDS.py")
+
 parser.add_argument('--init', type=str, default='Init.pickle')
 parser.add_argument('--mapping', type=str, default='theMapping.pickle')
 parser.add_argument('--evolution', type=str, default='Evolv.csv')

@@ -20,6 +20,7 @@ from config import *
 
 #%% Loading the data
 data_dir = args.data_dir
+output_file = args.output_file
 
 # Check if the directory exists
 if not os.path.isdir(data_dir):
@@ -53,5 +54,5 @@ Desc = Feat_DF.columns.tolist();    Desc = Desc[2:]					# Drug descriptors name
 Dist = pd.DataFrame(data = Euc_Dist, columns = Desc, index = Desc)	# Generating a distance matrix which includes the Euclidean distance between each and every descriptor
 data = (Desc, Dist, Img	)  											# Preparing the hill climbing inputs
 
-with open("Init_MDS_Euc.pickle", 'wb') as f:					# The hill climbing input is a pickle, therefore everything is saved as a pickle to be loaded by the hill climbing
+with open(output_file, 'wb') as f:					# The hill climbing input is a pickle, therefore everything is saved as a pickle to be loaded by the hill climbing
     pickle.dump(data, f)
