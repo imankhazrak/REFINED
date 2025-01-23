@@ -23,8 +23,8 @@ data_dir = args.data_dir
 output_file = args.output_file
 
 # Check if the directory exists
-if not os.path.isdir(data_dir):
-    raise ValueError(f"The specified data directory does not exist: {data_dir}")
+if not os.path.isfile(data_dir):
+    raise ValueError(f"The specified data file does not exist: {data_dir}")
 
 Feat_DF = pd.read_csv(args.data_dir).dropna(thresh=50)
 
