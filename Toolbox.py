@@ -66,26 +66,171 @@ def Random_Image_Gen(X, Rand_Pos_mat):
 from sklearn.manifold import MDS
 
 def two_d_norm(xy):
-    # xy is N x 2 xy cordinates, returns normed-xy on [0,1]
-    norm_xy = (xy - xy.min(axis = 0)) / (xy - xy.min(axis = 0)).max(axis = 0)
+    """
+    Normalize 2D coordinates to the range [0, 1].
+
+    Parameters:
+    ----------
+    xy : numpy.ndarray
+        A 2D NumPy array of shape (N, 2), where N is the number of data points.
+        Each row represents a point with x- and y-coordinates.
+
+    Returns:
+    -------
+    numpy.ndarray
+        A 2D NumPy array of the same shape as `xy`, where each coordinate has been
+        normalized independently to the range [0, 1].
+
+    Formula:
+    --------
+    Let `xy[:, 0]` and `xy[:, 1]` represent the x- and y-coordinates, respectively.
+    The normalization formula is applied independently to each coordinate:
+    
+        normalized_x = (x - x_min) / (x_max - x_min)
+        normalized_y = (y - y_min) / (y_max - y_min)
+
+    where:
+        - x_min, y_min: Minimum values of x and y coordinates, respectively.
+        - x_max, y_max: Maximum values of x and y coordinates, respectively.
+
+    Example:
+    --------
+    >>> import numpy as np
+    >>> xy = np.array([[2, 8], [4, 6], [6, 4], [8, 2]])
+    >>> two_d_norm(xy)
+    array([[0.        , 1.        ],
+           [0.33333333, 0.66666667],
+           [0.66666667, 0.33333333],
+           [1.        , 0.        ]])
+
+    Notes:
+    ------
+    - The normalization is performed independently for each axis (x and y).
+    - Input data must be numeric; non-numeric values may raise an error.
+
+    """
+    norm_xy = (xy - xy.min(axis=0)) / (xy - xy.min(axis=0)).max(axis=0)
     return norm_xy
 
-def two_d_eq(xy,Nn):
-    # xy is N x 2 xy cordinates, returns eq-xy on [0,1]
-    xx_rank = np.argsort(xy[:,0])
-    yy_rank = np.argsort(xy[:,1])
-    eq_xy = np.full(xy.shape,np.nan)
+
+def two_d_eq(xy, Nn):
+    """
+    Assigns evenly spaced normalized ranks to 2D coordinates based on their order.
+
+    This function takes a 2D array of coordinates and assigns normalized ranks
+    to the x- and y-coordinates independently. The ranks are evenly spaced
+    in the range [0, 1] based on the sorted order of the x- and y-coordinates.
+
+    Parameters:
+    ----------
+    xy : numpy.ndarray
+        A 2D NumPy array of shape (N, 2), where N is the number of points.
+        Each row represents a point with x- and y-coordinates.
+    Nn : int
+        The total number of points (usually `xy.shape[0]`).
+
+    Returns:
+    -------
+    numpy.ndarray
+        A 2D NumPy array of the same shape as `xy`. Each coordinate is replaced
+        by its normalized rank, where the ranks are evenly spaced between 0 and 1.
+
+    Formula:
+    --------
+    For each coordinate in `xy`:
+        - Rank the x-coordinates (ascending order) and assign:
+          eq_xy[xx_rank[i], 0] = i / Nn
+        - Rank the y-coordinates (ascending order) and assign:
+          eq_xy[yy_rank[i], 1] = i / Nn
+    where `xx_rank` and `yy_rank` are the indices of the sorted x- and y-coordinates.
+
+    Example:
+    --------
+    >>> import numpy as np
+    >>> xy = np.array([[8, 2], [4, 6], [6, 4], [2, 8]])
+    >>> Nn = xy.shape[0]
+    >>> two_d_eq(xy, Nn)
+    array([[0.75, 0.  ],
+           [0.25, 0.5 ],
+           [0.5 , 0.25],
+           [0.  , 0.75]])
+
+    Notes:
+    ------
+    - The function sorts the x- and y-coordinates independently.
+    - Each coordinate is assigned a rank normalized to the range [0, 1].
+    - Input data must be numeric; non-numeric values will raise an error.
+    """
+    xx_rank = np.argsort(xy[:, 0])
+    yy_rank = np.argsort(xy[:, 1])
+    eq_xy = np.full(xy.shape, np.nan)
     for ii in range(xy.shape[0]):
         xx_idx = xx_rank[ii]
         yy_idx = yy_rank[ii]
-        eq_xy[xx_idx,0] = ii * 1/Nn
-        eq_xy[yy_idx,1] = ii * 1/Nn
+        eq_xy[xx_idx, 0] = ii * 1 / Nn
+        eq_xy[yy_idx, 1] = ii * 1 / Nn
     return eq_xy
+
 
 #embedding = MDS(n_components=2)
 #mds_xy = embedding.fit_transform(transposed_input)
 # to pixels
 def Assign_features_to_pixels(xy,nn,verbose = False):
+        """
+    Assigns 2D features to pixels on a grid based on proximity.
+
+    This function takes a set of 2D feature coordinates and a grid size, 
+    and assigns each feature to the nearest available pixel on the grid. 
+    If multiple features compete for the same pixel, the function resolves 
+    conflicts by prioritizing the feature that is closest to the pixel.
+
+    Parameters:
+    ----------
+    xy : numpy.ndarray
+        A 2D NumPy array of shape (N, 2), where N is the number of features.
+        Each row represents a feature with x- and y-coordinates normalized 
+        to the range [0, 1].
+    nn : int
+        The width and height of the grid (e.g., for a 3x3 grid, nn=3). 
+        The grid has nn * nn pixels.
+    verbose : bool, optional
+        If True, prints progress during feature assignment.
+
+    Returns:
+    -------
+    numpy.ndarray
+        A 2D NumPy array of shape (nn, nn), where each pixel contains the label 
+        of the assigned feature (e.g., 'F0', 'F1', etc.). Pixels without an 
+        assigned feature are labeled as 'NaN'.
+
+    Algorithm Steps:
+    ----------------
+    1. Initialize a table (`result_table`) to store pixel coordinates and their assignments.
+    2. Compute the centroids of all pixels in normalized space.
+    3. Calculate the Euclidean distance between each feature and each pixel centroid.
+    4. Assign each feature to the nearest available pixel:
+        - If a feature's nearest pixel is unoccupied, assign the feature to that pixel.
+        - If a pixel is contested by multiple features, assign the nearest feature.
+    5. Update the grid with feature labels (e.g., 'F0', 'F1').
+
+    Example:
+    --------
+    >>> import numpy as np
+    >>> xy = np.array([[0.1, 0.8], [0.3, 0.3], [0.9, 0.9], [0.6, 0.2]])
+    >>> nn = 3
+    >>> img = Assign_features_to_pixels(xy, nn, verbose=True)
+    >>> print(img)
+    [['F1', 'NaN', 'F0'],
+     ['F3', 'NaN', 'NaN'],
+     ['NaN', 'NaN', 'F2']]
+
+    Notes:
+    ------
+    - The input `xy` must contain normalized coordinates in the range [0, 1].
+    - If verbose mode is enabled, the function prints the number of features 
+      assigned at each iteration.
+
+    """
     # For each unassigned feature, find its nearest pixel, repeat until every ft is assigned
     # xy is the 2-d coordinates (normalized to [0,1]); nn is the image width. Img size = n x n
     # generate the result summary table, xy pixels; 3rd is nan for filling the idx
