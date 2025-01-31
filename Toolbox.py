@@ -1196,3 +1196,70 @@ def Bias_Calc(Y_Test, Y_Pred):
     return Bias
 
 	
+### maiHill_UF functions
+def scatter_list_to_processors(comm, data_list, n_processors):
+    """
+    Distributes a list of data evenly among multiple processors using MPI communication.
+
+    Parameters:
+    -----------
+    comm : MPI communicator
+        The MPI communicator used for sending data to processors.
+    data_list : list
+        The list of data elements to be distributed among the processors.
+    n_processors : int
+        The total number of processors involved in the computation, including the master processor (rank 0).
+
+    Returns:
+    --------
+    bool
+        Returns True after successfully distributing the data.
+
+    Notes:
+    ------
+    - The function assumes `n_processors` includes the master node (rank 0), so data is only sent to processors with ranks 1 to `n_processors-1`.
+    - The data is divided into approximately equal-sized chunks, with the last chunk potentially being smaller if the data size is not perfectly divisible.
+    - The function uses `comm.send()` to send chunks of the list to each processor.
+    """
+    import math
+    data_amount = len(data_list)
+    heap_size = math.ceil(data_amount/(n_processors-1))
+
+    for pidx in range(1,n_processors):
+        try:
+            heap = data_list[heap_size*(pidx-1):heap_size*pidx]
+        except:
+            heap = data_list[heap_size*(pidx-1):]
+        comm.send(heap,dest = pidx)
+
+    return True
+
+def receive_from_processors_to_dict(comm, n_processors):
+    """
+    Receives dictionaries from multiple processors, combines them, and returns the merged dictionary.
+
+    Parameters:
+    -----------
+    comm : MPI communicator
+        The MPI communicator used for receiving data from processors.
+    n_processors : int
+        The total number of processors involved in the computation, including the master processor (rank 0).
+
+    Returns:
+    --------
+    dict
+        A merged dictionary containing all key-value pairs received from processors.
+
+    Notes:
+    ------
+    - The function assumes `n_processors` includes the master node (rank 0), so data is received only from processors with ranks 1 to `n_processors-1`.
+    - Each processor is expected to send a dictionary, which is then merged into a single dictionary using the `update()` method.
+    - If multiple processors have overlapping keys, values from higher-ranked processors will overwrite those from lower-ranked ones.
+    """
+    # receives dicts, combine them and return
+    feedback = dict()
+    for pidx in range(1,n_processors):
+        receved = comm.recv(source=pidx)
+        feedback.update(receved)
+    return feedback
+

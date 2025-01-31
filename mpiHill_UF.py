@@ -10,11 +10,16 @@ from mpi4py import MPI
 import paraHill
 import pickle
 import numpy as np
+import pandas as pd
 from itertools import product
 import time
 import datetime
 import config
 from config import *
+from Toolbox import scatter_list_to_processors
+from Toolbox import receive_from_processors_to_dict
+
+
 #%% Comm set
 comm = MPI.COMM_WORLD
 my_rank = comm.Get_rank()
@@ -23,34 +28,12 @@ print("Processors found: ",n_processors)
 current_time = datetime.datetime.now()
 print("Time now at the beginning is: ", current_time)
 
-def scatter_list_to_processors(comm, data_list, n_processors):
-    import math
-    data_amount = len(data_list)
-    heap_size = math.ceil(data_amount/(n_processors-1))
-
-    for pidx in range(1,n_processors):
-        try:
-            heap = data_list[heap_size*(pidx-1):heap_size*pidx]
-        except:
-            heap = data_list[heap_size*(pidx-1):]
-        comm.send(heap,dest = pidx)
-
-    return True
-
-def receive_from_processors_to_dict(comm, n_processors):
-    # receives dicts, combine them and return
-    feedback = dict()
-    for pidx in range(1,n_processors):
-        receved = comm.recv(source=pidx)
-        feedback.update(receved)
-    return feedback
 
 #start = time.time()
 #%% load data
 with open(args.init,'rb') as file:
     gene_names,dist_matr,init_map = pickle.load(file)
-# with open('./Synthetic/Init_Synth8000.pickle','rb') as file:
-   # gene_names,dist_matr,init_map = pickle.load(file)
+
 Nn = len(gene_names)
 
 kk = args.num
@@ -93,7 +76,6 @@ if my_rank == 0:
     #print("Consumed time:",start - time.time())
     Endtime = datetime.datetime.now()
     print("Time now at the end: ", Endtime)
-    import pandas as pd
     pd.Series(corr_evol).to_csv(args.evolution)    
 else:
     # other processors

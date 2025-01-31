@@ -65,7 +65,10 @@ def evaluate_centroid(centroid,dist_matr,mapping_in_int):
         swap_coord = [centroid[0]+each_direc[0],centroid[1]+each_direc[1]]
         evaluation = evaluate_swap(centroid,swap_coord,dist_matr,mapping_in_int,original_corr)
         results.append(evaluation)
-    results_array = np.array(results)
+    print("Debugging results:", results) # Debug the results list # added by Iman
+    # results_array = np.array(results) # commented by Iman
+    # Convert all elements of results into numpy arrays before conversion # added by Iman
+    results_array = np.array([np.asarray(r) for r in results], dtype=object) # added by Iman
     #best_swap_direc = np.where(results_array == np.nanmax(results_array))[0][0]
     best_swap_direc = np.where(results_array == np.nanmin(results_array))[0][0]
     # Give the best direction as a int
